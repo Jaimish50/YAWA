@@ -28,7 +28,7 @@ function Chat(){
             }
         }
         temp();
-    },[]);
+    },[navigate]);
 
     useEffect(() => {
         if(currentUser){
@@ -50,7 +50,7 @@ function Chat(){
         }
         temp2();
         
-    },[currentUser]);
+    },[currentUser,navigate]);
 
     const handleChatChange = (chat) => {
         setCurrentChat(chat);

@@ -13,10 +13,6 @@ export default function ChatContainer({ currentChat, currentUser, socket, change
     const [arrivalMessage, setArrivalMessage] = useState(null);
     const scrollRef = useRef();
 
-    const [press, setPress] = useState(false);
-
-    const [isDelete, setIsDelete] = useState(false);
-
     useEffect(() => {
         const fetchMessages = async () => {
             if(currentChat && currentUser){

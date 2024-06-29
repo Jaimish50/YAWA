@@ -32,7 +32,7 @@ export default function SetAvatar() {
         if(JSON.parse(localStorage.getItem("chat-app-user")).isAvatarImageSet){
             navigate("/");
         }
-    },[]);
+    },[navigate]);
 
     useEffect(() => {
         const fetchAvatars = async () => {

@@ -42,7 +42,7 @@ function Login (){
         if(localStorage.getItem("chat-app-user")){
             navigate("/");
         }
-    },[]);
+    },[navigate]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -53,7 +53,7 @@ function Login (){
                 password,
             });
             console.log(data.user);
-            if(data.status == false){
+            if(data.status === false){
                 navigate("/login");
                 toast.error(
                     data.msg,
@@ -61,7 +61,7 @@ function Login (){
                 );
             }
 
-            if(data.status == true){
+            if(data.status === true){
                 localStorage.setItem('chat-app-user',JSON.stringify(data.user));
                 if(!JSON.parse(localStorage.getItem("chat-app-user")).isAvatarImageSet){
                     navigate("/setAvatar");
