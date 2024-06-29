@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/YAWA/static/css/main.491deb42.css",
+    "main.js": "/YAWA/static/js/main.73a55a59.js",
+    "static/media/robot.gif": "/YAWA/static/media/robot.0617a41936621e9697cd.gif",
+    "static/media/loader.gif": "/YAWA/static/media/loader.b40fc3d91ff1f4db53e2.gif",
+    "static/media/logo.svg": "/YAWA/static/media/logo.ccfbd90732828204fa6989c0f15638c0.svg",
+    "index.html": "/YAWA/index.html",
+    "main.491deb42.css.map": "/YAWA/static/css/main.491deb42.css.map",
+    "main.73a55a59.js.map": "/YAWA/static/js/main.73a55a59.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.491deb42.css",
+    "static/js/main.73a55a59.js"
+  ]
+}
