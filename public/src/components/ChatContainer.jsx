@@ -58,7 +58,7 @@ export default function ChatContainer({ currentChat, currentUser, socket, change
                 setArrivalMessage({ fromSelf: false, message: {text: data.message} });
             });
         }
-    },[]);
+    },[changeOrder,socket]);
 
     useEffect(() => {
         if(arrivalMessage) {
@@ -109,7 +109,7 @@ export default function ChatContainer({ currentChat, currentUser, socket, change
                         </div>
                     </div>
                     <div className="settings">
-                        <button onClick={handleClearAllChat} className={press ? "pressed" : "unpressed"}> 
+                        <button onClick={handleClearAllChat} className="unpressed"> 
                             <FaTrashAlt />
                         </button>
                         
@@ -132,7 +132,7 @@ export default function ChatContainer({ currentChat, currentUser, socket, change
                                             </div>
                                             <div className="clear-message" onClick={() => handleDeleteMessage(message.id)}>
                                                     <button 
-                                                        className={isDelete ? "delete" : "normal"}
+                                                        className="normal"
                                                     >
                                                         <FaTrashAlt />
                                                     </button>
