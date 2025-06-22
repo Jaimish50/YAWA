@@ -62,10 +62,8 @@ export default function ChatContainer({ currentChat, currentUser, socket, change
 
     useEffect(() => {
         if(arrivalMessage) {
-            setMessages((prev) => {
-                const updatedMessages = [...prev, arrivalMessage];
-                return updatedMessages;   
-            });
+            toast.success(`${arrivalMessage} is arrived`);
+            setMessages([...messages, arrivalMessage]);
         } 
     },[arrivalMessage]);
 
