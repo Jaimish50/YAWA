@@ -197,7 +197,7 @@ export default function SetAvatar() {
   };
 
   useEffect(() => {
-    const user = localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY);
+    const user = localStorage.getItem("chat-app-user");
     if (!user) navigate("/login");
   }, [navigate]);
 
