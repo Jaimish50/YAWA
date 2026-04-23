@@ -233,7 +233,7 @@ export default function SetAvatar() {
       return;
     }
 
-    const { data } = await axios.post(`${setAvatarRoute}/${user?._id}`, {
+    const { data } = await axios.post(`${setAvatarRoute}/${user._id}`, {
       image: avatars[selectedAvatar],
     });
 
