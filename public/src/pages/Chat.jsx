@@ -59,10 +59,10 @@ function Chat(){
 
     const handleChangeOrder = async (sender, order) => {//
         setSender(sender);
-        const response = await axios.post(changeOrderRoute, {
-            sender,
-            order
-        });
+        // const response = await axios.post(changeOrderRoute, {
+        //     sender,
+        //     order
+        // });
 
         const {data} = await axios.get(`${allUsersRoute}/${currentUser._id}`);
         setContacts(data);
