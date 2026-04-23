@@ -34,6 +34,7 @@ function Chat(){
         if(currentUser){
             socket.current = io(host);
             socket.current.emit("add-user", currentUser._id);
+            console.log("userid is sended : "+ currentUser._id);
         }
     },[currentUser]);
 
@@ -58,7 +59,6 @@ function Chat(){
 
     const handleChangeOrder = async (sender, order) => {//
         setSender(sender);
-        debugger
         const response = await axios.post(changeOrderRoute, {
             sender,
             order

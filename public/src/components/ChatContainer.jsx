@@ -15,7 +15,7 @@ export default function ChatContainer({ currentChat, currentUser, socket, change
 
     useEffect(() => {
         const fetchMessages = async () => {
-            if(currentChat && currentUser){
+            if(currentChat){
                 const response = await axios.get(getAllMessagesRoute, {
                     params: {
                         from: currentUser._id,
@@ -29,7 +29,7 @@ export default function ChatContainer({ currentChat, currentUser, socket, change
             }
         }
         fetchMessages();
-    },[currentChat,currentUser])
+    },[currentChat])
 
     const handleSendMsg = async (msg) => {
         const or = await axios.post(sendMessagesRoute, {
@@ -37,7 +37,6 @@ export default function ChatContainer({ currentChat, currentUser, socket, change
             to: currentChat._id,
             message: msg,
         });
-        debugger
         socket.current.emit("send-msg", {
             to: currentChat._id,
             from: currentUser._id,
@@ -53,17 +52,18 @@ export default function ChatContainer({ currentChat, currentUser, socket, change
     useEffect(() => {
         if(socket.current){
             socket.current.on("msg-recieve",(data)=> {
-                changeOrder( data.from, data.order );
+                // changeOrder( data.from, data.order );
                 toast.success(`${data.message} from ${data.from}, to: ${data.to}`);
+                console.log("received : ",data);
                 setArrivalMessage({ fromSelf: false, message: {text: data.message} });
             });
         }
-    },[changeOrder,socket]);
+    },[]);
 
     useEffect(() => {
         if(arrivalMessage) {
-            toast.success(`${arrivalMessage} is arrived`);
-            setMessages([...messages, arrivalMessage]);
+            console.log(arrivalMessage, " : arrival message");
+            setMessages(prev => [...prev, arrivalMessage]);
         } 
     },[arrivalMessage]);
 
@@ -119,7 +119,7 @@ export default function ChatContainer({ currentChat, currentUser, socket, change
                     {
                         messages.map((message) => {
                             return (
-                                <>
+                                
                                     <div ref={scrollRef} key={uuidv4()}>
                                         <div className={`message ${message.fromSelf ? "sended" : "received"}`}>
                                             <div className="content">
@@ -137,7 +137,7 @@ export default function ChatContainer({ currentChat, currentUser, socket, change
                                             </div>
                                         </div>
                                     </div>
-                                </>
+                                
                             )
                             
                         })

@@ -1,12 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const app = express();
-require("dotenv").config();
-
+const socket = require("socket.io");
 const userRoutes = require("./routes/userRoutes");
 const messagesRoute = require("./routes/messagesRoute");
+require("dotenv").config();
+const HOST = "0.0.0.0";
 
+const app = express();
 app.use(cors());
 app.use(express.json());
 
@@ -21,11 +22,9 @@ mongoose.connect(process.env.MONGO_URL)
         console.error(`DB Connection Error: `, err.message);
     });
 
-const server = app.listen(process.env.PORT, () => {
+const server = app.listen(process.env.PORT,HOST, () => {
     console.log(`Server Started on Port ${process.env.PORT}`);
 });
-
-const socket = require("socket.io");
 
 const io = socket(server,{
     cors:{
@@ -37,8 +36,10 @@ const io = socket(server,{
 global.onlineUsers = new Map();
 
 io.on("connection",(socket) => {
+    console.log("connection is built");
     global.chatSocket = socket;
     socket.on("add-user", (userId) => {
+        console.log("user id is received : "+ userId);
         onlineUsers.set(userId, socket.id);
     });
 
