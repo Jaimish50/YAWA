@@ -224,9 +224,8 @@ export default function SetAvatar() {
       toast.error("Please select an avatar", toastOptions);
       return;
     }
-console.log("KEY:", process.env.REACT_APP_LOCALHOST_KEY);
     const user = await JSON.parse(
-      localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
+      localStorage.getItem("chat-app-user")
     );
 
     if (!user || !user._id) {
