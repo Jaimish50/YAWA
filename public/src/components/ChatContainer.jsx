@@ -18,7 +18,7 @@ export default function ChatContainer({ currentChat, currentUser, socket, change
             if(currentChat){
                 const response = await axios.get(getAllMessagesRoute, {
                     params: {
-                        from: currentUser._id,
+                        from: currentChat?._id,
                         to: currentChat._id,
                     }
                 });
