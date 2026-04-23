@@ -2,6 +2,7 @@ import React from 'react';
 
 import styled from 'styled-components';
 import Robot from "../assets/robot.gif";
+import Logout from './Logout';
 
 
 export default function Welcome({ currentUser }){
@@ -11,6 +12,7 @@ export default function Welcome({ currentUser }){
                 <img src={Robot} alt="Robot" />
                 {currentUser ? (
                 <>
+                    <Logout></Logout>
                     <h1>
                         Welcome, <span>{currentUser.username}!</span>
                     </h1>
