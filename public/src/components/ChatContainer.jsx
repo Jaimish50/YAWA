@@ -18,8 +18,8 @@ export default function ChatContainer({ currentChat, currentUser, socket, change
             if(currentChat){
                 const response = await axios.get(getAllMessagesRoute, {
                     params: {
-                        from: currentChat?._id,
-                        to: currentChat._id,
+                        from: currentUser._id,   // ✅ YOU
+                        to: currentChat._id,     // ✅ OTHER USER
                     }
                 });
                 
