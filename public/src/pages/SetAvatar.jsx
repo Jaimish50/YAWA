@@ -229,6 +229,11 @@ export default function SetAvatar() {
       localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)
     );
 
+    if (!user || !user._id) {
+      console.log("User not loaded yet 😤");
+      return;
+    }
+
     const { data } = await axios.post(`${setAvatarRoute}/${user?._id}`, {
       image: avatars[selectedAvatar],
     });
