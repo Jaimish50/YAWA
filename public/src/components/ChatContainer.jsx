@@ -29,7 +29,7 @@ export default function ChatContainer({ currentChat, currentUser, socket, change
             }
         }
         fetchMessages();
-    },[currentChat,currentUser._id])
+    },[currentChat,currentUser])
 
     const handleSendMsg = async (msg) => {
         const or = await axios.post(sendMessagesRoute, {
