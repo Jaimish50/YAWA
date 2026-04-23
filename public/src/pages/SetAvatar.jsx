@@ -241,7 +241,7 @@ export default function SetAvatar() {
       user.isAvatarImageSet = true;
       user.avatarImage = data.image;
       localStorage.setItem(
-        process.env.REACT_APP_LOCALHOST_KEY,
+        "chat-app-user",
         JSON.stringify(user)
       );
       navigate("/");
