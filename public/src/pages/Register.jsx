@@ -19,6 +19,8 @@ function Register() {
     });
 
     const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 
     const handleChange = (event) => {
         setValues({ ...values, [event.target.name]: event.target.value });
@@ -26,6 +28,10 @@ function Register() {
 
     const toggleShowPassword = () => {
         setShowPassword(!showPassword);
+    };
+
+    const toggleShowConfirmPassword = () => {
+        setShowConfirmPassword(!showConirmPassword);
     };
 
     const toastOptions = {
@@ -112,8 +118,8 @@ function Register() {
                             name="confirmPassword"
                             onChange={(e) => handleChange(e)}
                         />
-                        <button type="button" onClick={toggleShowPassword}>
-                            {showPassword ? <FaEyeSlash /> : <FaEye /> }
+                        <button type="button" onClick={toggleShowConfirmPassword}>
+                            {showConfirmPassword ? <FaEyeSlash /> : <FaEye /> }
                         </button>
                     </div>
                     <button type="submit">Create User</button>
