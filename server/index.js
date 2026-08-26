@@ -10,6 +10,7 @@ const HOST = "0.0.0.0";
 const app = express();
 app.use(cors({
   origin: "https://yawa-gyyq.vercel.app",
+//   origin : "http://localhost:3000",
   credentials: true
 }));
 app.use(express.json());
@@ -31,7 +32,8 @@ const server = app.listen(process.env.PORT,HOST, () => {
 
 const io = socket(server,{
     cors:{
-        origin:"https://yawa-gyyq.vercel.app",
+        // origin:"https://yawa-gyyq.vercel.app",
+        origin: "http://localhost:3000",
         credentials: true,
     }
 });
