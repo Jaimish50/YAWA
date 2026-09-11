@@ -1,86 +1,109 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import styled from "styled-components";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { allUsersRoute, host } from "../utils/APIRoutes";
-import Contacts from '../components/Contacts.jsx';
-import Welcome from "../components/Welcome.jsx";
-import ChatContainer from "../components/ChatContainer.jsx";
-import {io} from "socket.io-client";
+import { ToastContainer, toast } from "react-toastify";
+import api, { apiError } from "../utils/api";
+import { allUsersRoute, host, meRoute } from "../utils/APIRoutes";
+import { applyIncomingMessage } from "../utils/chatState";
+import Contacts from "../components/Contacts";
+import Welcome from "../components/Welcome";
+import ChatContainer from "../components/ChatContainer";
+import { io } from "socket.io-client";
 
-function Chat(){
-    const socket = useRef();
+function Chat() {
+  const navigate = useNavigate();
+  const [socket, setSocket] = useState(null);
+  const [contacts, setContacts] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
+  const [connected, setConnected] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const selectedRef = useRef(null);
+  const refreshVersion = useRef(0);
+  const currentChat = contacts.find((contact) => contact._id === selectedId);
 
-    const navigate = useNavigate();
-    const [contacts, setContacts] = useState([]);
-    const [currentUser, setCurrentUser] = useState(undefined);
-    const [currentChat, setCurrentChat] = useState(undefined);
-    const [isLoaded, setIsLoaded] = useState(false);
-    const [sender, setSender] = useState(undefined);
+  useEffect(() => {
+    let active = true;
+    api.get(meRoute).then(({ data }) => {
+      if (!active) return;
+      if (!data.user.isAvatarImageSet) navigate("/setAvatar", { replace: true });
+      else setCurrentUser(data.user);
+    }).catch((error) => {
+      if (!active) return;
+      if (error.response?.status === 401) navigate("/login", { replace: true });
+      else setLoadError(apiError(error));
+    });
+    return () => { active = false; refreshVersion.current += 1; };
+  }, [navigate]);
 
-    useEffect(() => {
-        const temp = async () => {
-            if(!localStorage.getItem("chat-app-user")){
-                navigate("/login");
-            }else{
-                setCurrentUser(await JSON.parse(localStorage.getItem("chat-app-user")));
-                setIsLoaded(true);
-            }
-        }
-        temp();
-    },[navigate]);
-
-    useEffect(() => {
-        if(currentUser){
-            socket.current = io(host);
-            socket.current.emit("add-user", currentUser._id);
-            console.log("userid is sended : "+ currentUser._id);
-        }
-    },[currentUser]);
-
-    useEffect(()=> {
-        const temp2 = async () => {
-            if(currentUser){
-                if(currentUser.isAvatarImageSet){
-                    const {data} = await axios.get(`${allUsersRoute}/${currentUser._id}`);
-                    setContacts(data);
-                }else{
-                    navigate("/setAvatar");
-                }
-            }
-        }
-        temp2();
-        
-    },[currentUser,navigate]);
-
-    const handleChatChange = (chat) => {
-        setCurrentChat(chat);
+  const refreshContacts = useCallback(async () => {
+    if (!currentUser) return;
+    const version = ++refreshVersion.current;
+    try {
+      const { data } = await api.get(allUsersRoute + "/" + currentUser._id);
+      if (version === refreshVersion.current) { setContacts(data); setLoadError(""); }
+    } catch (error) {
+      if (version !== refreshVersion.current) return;
+      if (error.response?.status === 401) navigate("/login", { replace: true });
+      else setLoadError(apiError(error));
     }
+  }, [currentUser, navigate]);
 
-    const handleChangeOrder = async (sender, order) => {//
-        setSender(sender);
-        // const response = await axios.post(changeOrderRoute, {
-        //     sender,
-        //     order
-        // });
+  useEffect(() => {
+    if (!currentUser) return;
+    const client = io(host, { withCredentials: true, autoConnect: false });
+    const seen = new Set();
+    setSocket(client);
+    client.on("connect", () => { setConnected(true); refreshContacts(); });
+    client.on("disconnect", (reason) => {
+      setConnected(false);
+      if (reason === "io server disconnect") navigate("/login", { replace: true });
+    });
+    client.on("connect_error", (error) => {
+      setConnected(false);
+      if (error.message === "Authentication required.") navigate("/login", { replace: true });
+    });
+    client.on("message:new", (event) => {
+      if (seen.has(event.id)) return;
+      seen.add(event.id);
+      if (seen.size > 1000) seen.delete(seen.values().next().value);
+      ++refreshVersion.current;
+      setContacts((previous) => applyIncomingMessage(previous, event, currentUser._id,
+        selectedRef.current, document.visibilityState === "visible"));
+      refreshContacts();
+    });
+    client.on("chat:read", refreshContacts);
+    client.connect();
+    refreshContacts();
+    return () => { client.removeAllListeners(); client.disconnect(); ++refreshVersion.current; };
+  }, [currentUser, refreshContacts, navigate]);
 
-        const {data} = await axios.get(`${allUsersRoute}/${currentUser._id}`);
-        setContacts(data);
-    }
+  const changeChat = (contact) => {
+    selectedRef.current = contact._id;
+    setSelectedId(contact._id);
+  };
 
-    return <Container>
-        <div className="container">
-            {contacts && (<Contacts contacts={contacts} currentUser={currentUser} currentChat={currentChat} changeChat={handleChatChange} sender={sender} />)}
-            {isLoaded && currentChat === undefined ? (
-                <Welcome currentUser={currentUser} />
-            ) : (
-                <ChatContainer currentChat={currentChat} currentUser={currentUser} socket={socket} changeOrder={handleChangeOrder} />
-            )}
-        </div>
+  return (
+    <Container>
+      {loadError && <div className="status" role="alert">{loadError} <button onClick={() => window.location.reload()}>Retry</button></div>}
+      {currentUser && !connected && <div className="status" role="status">Reconnecting to live messages…</div>}
+      <div className="container">
+        <Contacts contacts={contacts} currentUser={currentUser} currentChatId={selectedId} changeChat={changeChat} />
+        {currentChat && currentUser ? (
+          <ChatContainer key={currentChat._id} currentChat={currentChat} currentUser={currentUser}
+            socket={socket} onActivity={refreshContacts} onError={(error) => {
+              if (error.response?.status === 401) navigate("/login", { replace: true });
+              else toast.error(apiError(error));
+            }} />
+        ) : <Welcome currentUser={currentUser} />}
+      </div>
+      <ToastContainer position="bottom-right" theme="dark" />
     </Container>
+  );
 }
 
 const Container = styled.div`
+    .status { color: #d9c9ff; }
     height: 100vh;
     width: 100vw;
     display: flex;
@@ -97,7 +120,7 @@ const Container = styled.div`
         grid-template-columns: 25% 75%;
 
         @media screen and (min-width: 720px) and (max-width:1080px){
-            grid-tamplate-columns: 35% 65%;
+            grid-template-columns: 35% 65%;
         }
     }
 `;

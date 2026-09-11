@@ -4,20 +4,20 @@ const userSchema = new mongoose.Schema({
     username : {
         type: String,
         required: true,
-        min: 3,
-        max: 20,
+        minlength: 3,
+        maxlength: 20,
         unique: true
     },
     email : {
         type: String,
         required: true,
         unique: true,
-        max: 50
+        maxlength: 254
     },
     password : {
         type: String,
         required: true,
-        min: 8
+        select: false
     },
     isAvatarImageSet: {
         type: Boolean,
@@ -27,9 +27,17 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
-    order: {
-        type: Date,
-    }
+    usernameKey: { type: String, unique: true, sparse: true },
+    emailVerifiedAt: { type: Date, default: null }
 })
+
+userSchema.set("toJSON", {
+    transform: (_doc, value) => {
+        delete value.password;
+        delete value.__v;
+        delete value.usernameKey;
+        return value;
+    }
+});
 
 module.exports = mongoose.model("Users",userSchema);

@@ -11,7 +11,7 @@ const messageSchema = new mongoose.Schema({
         },
         sender: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
+            ref: "Users",
             required: true,
         },
         isRemoved: {
@@ -19,7 +19,12 @@ const messageSchema = new mongoose.Schema({
             default: false
         }
     },
+    // Legacy messages have no unread field and are treated as already read.
+    unread: { type: Boolean, default: true },
+    readAt: { type: Date, default: null },
 },
 { timestamps: true });
+
+messageSchema.index({ "message.users": 1, createdAt: 1 });
 
 module.exports = mongoose.model("Messages",messageSchema);

@@ -4,64 +4,41 @@ import Picker from "emoji-picker-react";
 import { IoMdSend } from "react-icons/io";
 import { BsEmojiSmileFill } from "react-icons/bs";
 
-export default function ChatInput({handleSendMsg}) {
-    const [showEmojiPicker,setShowEmojiPicker] = useState(false);
-    const [msg, setMsg] = useState("");
-    const [press, setPress] = useState(false);
+export default function ChatInput({ handleSendMsg }) {
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [sending, setSending] = useState(false);
+  const sendChat = async (event) => {
+    event.preventDefault();
+    if (!msg.trim() || sending) return;
+    setSending(true);
+    try {
+      if (await handleSendMsg(msg)) setMsg("");
+    } finally { setSending(false); }
+  };
 
-    const handleEmojiPickerShow = () => {
-        setShowEmojiPicker(!showEmojiPicker);
-    };
-
-    const handleEmojiClick = (emojiObject) => {
-        let message = msg;
-        message += emojiObject.emoji;
-        setMsg(message);
-    }
-
-    const sendChat = (event) => {
-        event.preventDefault();
-        setPress(true);
-        setTimeout(() => {
-            setPress(false);
-            if(msg.length > 0){
-                handleSendMsg(msg);
-                setMsg("");
-            }
-        },120);
-        
-    }
-    return (
-        <>
-            <Container>
-                <div className="button-container">
-                    <div className="emoji">
-                        <BsEmojiSmileFill onClick={handleEmojiPickerShow}/>
-                        {
-                            showEmojiPicker && <Picker onEmojiClick={handleEmojiClick}/>
-                        }
-                    </div>
-                </div>
-                <form className="input-container" onSubmit={(e) => sendChat(e)} >
-                    <input 
-                        type="text" 
-                        placeholder="type your message here" 
-                        onChange={(e) => {
-                            setMsg(e.target.value)
-                        }}
-                        value={msg}
-                    />
-                    <button className={press ? "pressed" : "unpressed" }>
-                        <IoMdSend />
-                    </button>
-                </form>
-            </Container>
-        </>
-    );
-        
+  return (
+    <Container>
+      <div className="button-container">
+        <div className="emoji">
+          <button type="button" aria-label="Choose emoji" className="emoji-toggle"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}><BsEmojiSmileFill /></button>
+          {showEmojiPicker && <Picker onEmojiClick={(emoji) => setMsg((value) => (value + emoji.emoji).slice(0, 4000))} />}
+        </div>
+      </div>
+      <form className="input-container" onSubmit={sendChat}>
+        <input type="text" aria-label="Message" placeholder="Type your message here" maxLength={4000}
+          disabled={sending} value={msg} onChange={(event) => setMsg(event.target.value)} />
+        <button type="submit" aria-label="Send message" disabled={sending || !msg.trim()}
+          className={sending ? "pressed" : "unpressed"}><IoMdSend /></button>
+      </form>
+    </Container>
+  );
 }
 
 const Container = styled.div`
+    .emoji-toggle { background: transparent; border: 0; padding: 0; }
+    button:disabled { opacity: 0.5; cursor: wait; }
     display: grid;
     grid-template-columns: 5% 95%;
     align-items: center;

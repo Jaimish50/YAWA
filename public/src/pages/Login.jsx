@@ -1,131 +1,65 @@
-//1
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-
-//2
 import Logo from "../assets/logo.svg";
-import {ToastContainer, toast} from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
-import { loginRoute } from "../utils/APIRoutes";
-
+import api, { apiError } from "../utils/api";
+import { loginRoute, meRoute } from "../utils/APIRoutes";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-function Login (){
-    const navigate = useNavigate();
-    //
-    const [values, setValues] = useState({
-        username: "",
-        password: "",
-    })
-    const [showPassword,setShowPassword] = useState(false);
+function Login() {
+  const navigate = useNavigate();
+  const [values, setValues] = useState({ username: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const handleChange = (event) => setValues({ ...values, [event.target.name]: event.target.value });
 
-    const handleChange = (event) => {
-        setValues({...values, [event.target.name]: event.target.value });
-    };
+  useEffect(() => {
+    let active = true;
+    api.get(meRoute).then(({ data }) => {
+      if (active) navigate(data.user.isAvatarImageSet ? "/" : "/setAvatar", { replace: true });
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [navigate]);
 
-    //
-    const toastOptions = { // aano matlab aevu ke => alert box aave aeni css styling karava maate
-        position: "bottom-right",
-        autoClose: 8000,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "dark",
-    }
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (busy) return;
+    if (!values.username.trim() || !values.password) { toast.error("Enter your username and password."); return; }
+    setBusy(true);
+    try {
+      const { data } = await api.post(loginRoute, { username: values.username.trim(), password: values.password });
+      setValues({ username: "", password: "" });
+      navigate(data.user.isAvatarImageSet ? "/" : "/setAvatar", { replace: true });
+    } catch (error) { toast.error(apiError(error)); }
+    finally { setBusy(false); }
+  };
 
-    const toggleShowPassword = () => {
-        setShowPassword(!showPassword);
-    };
-
-    useEffect(() => {
-        if(localStorage.getItem("chat-app-user")){
-            navigate("/");
-        }
-    },[navigate]);
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        if(handleValidation()){
-            const { password, username} = values;
-            const {data} = await axios.post(loginRoute, {
-                username,
-                password,
-            });
-            console.log(data.user);
-            if(data.status === false){
-                navigate("/login");
-                toast.error(
-                    data.msg,
-                    toastOptions
-                );
-            }
-
-            if(data.status === true){
-                localStorage.setItem('chat-app-user',JSON.stringify(data.user));
-                if(!JSON.parse(localStorage.getItem("chat-app-user")).isAvatarImageSet){
-                    navigate("/setAvatar");
-                }
-                navigate("/");
-            } 
-        }
-    };
-
-    const handleValidation = () => {
-        const { password,username} = values;
-        if (username.length < 3){
-            toast.error(
-                "Username shoud be greater than 3 character",
-                toastOptions
-            )
-            return false;
-        }else if(password.length < 8){
-            toast.error(
-                "Password should be grater than 8 character",
-                toastOptions
-            )
-            return false;
-        }else if(!( /\d/.test(password) &&  /[!@#%^&*(),.?":{}|<>]/.test(password) && /[a-zA-Z]/.test(password) )){
-            toast.error(
-                "Password must be contain Number,English and Symbol character",
-                toastOptions
-            )
-            return false;
-        }
-        return true;
-    }
-
-    //
-    return (
-        <>
-            <FormContainer>
-                <form onSubmit={(event) => handleSubmit(event)}>
-                    <div className="brand"> 
-                        <img className="img" src={Logo} alt="logo"/>
-                        <h1>YAWA</h1>
-                    </div>
-                    <input type="text" placeholder='Username' name="username" onChange={(e) => handleChange(e)} min="3"/>
-                    <div className="password-container">
-                        <input 
-                            type={showPassword ? "text" : "password"} 
-                            placeholder='Password' 
-                            name="password" 
-                            onChange={(e) => handleChange(e)} 
-                        />
-                        <button type="button" onClick={toggleShowPassword}>
-                            {showPassword ? <FaEyeSlash /> : <FaEye /> }
-                        </button>
-                    </div>
-                    <button type='submit'>Login</button>
-                    <span>don't have an account ? <Link to="/register" className="a">sign up</Link> </span>
-                </form>
-            </FormContainer>
-            <ToastContainer />
-        </>
-    )
+  return (
+    <>
+      <FormContainer>
+        <form onSubmit={handleSubmit}>
+          <div className="brand"><img className="img" src={Logo} alt="YAWA" /><h1>YAWA</h1></div>
+          <input aria-label="Username" type="text" placeholder="Username" name="username" required
+            autoComplete="username" maxLength={100} value={values.username} onChange={handleChange} />
+          <div className="password-container">
+            <input aria-label="Password" type={showPassword ? "text" : "password"} placeholder="Password"
+              name="password" required autoComplete="current-password" value={values.password} onChange={handleChange} />
+            <button type="button" aria-label={showPassword ? "Hide password" : "Show password"}
+              onClick={() => setShowPassword(!showPassword)}>{showPassword ? <FaEyeSlash /> : <FaEye />}</button>
+          </div>
+          <button type="submit" disabled={busy}>{busy ? "Logging in…" : "Login"}</button>
+          <span>Don't have an account? <Link to="/register" className="a">Sign up</Link></span>
+        </form>
+      </FormContainer>
+      <ToastContainer position="bottom-right" theme="dark" />
+    </>
+  );
 }
 
 const FormContainer = styled.div`
+    button:disabled { opacity: 0.5; cursor: wait; }
     height: 100vh;
     width: 100vw;
     display: flex;
