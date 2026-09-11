@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
+const mongoose = require("mongoose");
 const userRoutes = require("./routes/userRoutes");
 const messagesRoute = require("./routes/messagesRoute");
 const { createOtpMailer } = require("./services/mailer");
@@ -14,6 +15,10 @@ function createApp({ sendOtp = createOtpMailer(), clientOrigin = process.env.CLI
   app.use(helmet());
   app.use(cors({ origin: clientOrigin, credentials: true }));
   app.use(express.json({ limit: "150kb" }));
+  app.get("/healthz", (_req, res) => {
+    const ready = mongoose.connection.readyState === 1 && !app.get("shuttingDown");
+    res.set("Cache-Control", "no-store").status(ready ? 200 : 503).json({ status: ready ? "ok" : "unavailable" });
+  });
   app.use("/api", (req, res, next) => {
     res.set("Cache-Control", "no-store");
     // A custom header forces browser preflight; also reject foreign origins to stop CSRF.
