@@ -1,5 +1,5 @@
 // export const host = "https://yawa-n436.onrender.com";
-export const host = process.env.API_URL;
+export const host = process.env.REACT_APP_API_URL;
 export const registerRoute = `${host}/api/auth/register`;
 export const loginRoute = `${host}/api/auth/login`;
 export const setAvatarRoute = `${host}/api/auth/setAvatar`;
