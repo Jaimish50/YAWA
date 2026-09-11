@@ -5,10 +5,15 @@ const COOKIE_NAME = "yawa_session";
 const SESSION_MS = 12 * 60 * 60 * 1000;
 
 function cookieOptions() {
+  const secure = process.env.NODE_ENV === "production";
+  const sameSite = process.env.COOKIE_SAME_SITE || "lax";
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.COOKIE_SAME_SITE || "lax",
+    secure,
+    sameSite,
+    // Vercel and Render are different sites. CHIPS keeps this session usable
+    // when the browser blocks ordinary third-party cookies.
+    partitioned: secure && sameSite === "none",
     path: "/",
   };
 }
@@ -58,4 +63,4 @@ async function createSession(req, res, user) {
   res.cookie(COOKIE_NAME, token, { ...cookieOptions(), maxAge: SESSION_MS });
 }
 
-module.exports = { requireAuth, resolveSession, createSession, endSession };
+module.exports = { requireAuth, resolveSession, createSession, endSession, cookieOptions };
